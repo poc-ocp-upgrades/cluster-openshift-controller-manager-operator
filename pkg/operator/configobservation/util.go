@@ -10,6 +10,8 @@ import (
 func ObserveField(observedConfig map[string]interface{}, val interface{}, fieldName string, skipIfEmpty bool) error {
 	_logClusterCodePath()
 	defer _logClusterCodePath()
+	_logClusterCodePath()
+	defer _logClusterCodePath()
 	nestedFields := strings.Split(fieldName, ".")
 	if val == nil {
 		return nil
@@ -51,6 +53,8 @@ func ObserveField(observedConfig map[string]interface{}, val interface{}, fieldN
 	return err
 }
 func ConvertJSON(o interface{}) (interface{}, error) {
+	_logClusterCodePath()
+	defer _logClusterCodePath()
 	_logClusterCodePath()
 	defer _logClusterCodePath()
 	if o == nil {

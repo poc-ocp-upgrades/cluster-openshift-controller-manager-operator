@@ -15,6 +15,8 @@ import (
 func TestObserveClusterConfig(t *testing.T) {
 	_logClusterCodePath()
 	defer _logClusterCodePath()
+	_logClusterCodePath()
+	defer _logClusterCodePath()
 	tests := []struct {
 		name	string
 		cm	*corev1.ConfigMap

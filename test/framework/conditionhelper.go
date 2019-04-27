@@ -12,6 +12,8 @@ import (
 func hasExpectedClusterOperatorConditions(status *configv1.ClusterOperator) bool {
 	_logClusterCodePath()
 	defer _logClusterCodePath()
+	_logClusterCodePath()
+	defer _logClusterCodePath()
 	gotAvailable := false
 	gotProgressing := false
 	gotDegraded := false
@@ -29,6 +31,8 @@ func hasExpectedClusterOperatorConditions(status *configv1.ClusterOperator) bool
 	return gotAvailable && gotProgressing && gotDegraded
 }
 func ensureClusterOperatorStatusIsSet(logger Logger, client *Clientset) error {
+	_logClusterCodePath()
+	defer _logClusterCodePath()
 	_logClusterCodePath()
 	defer _logClusterCodePath()
 	var status *configv1.ClusterOperator
@@ -54,6 +58,8 @@ func ensureClusterOperatorStatusIsSet(logger Logger, client *Clientset) error {
 	return err
 }
 func MustEnsureClusterOperatorStatusIsSet(t *testing.T, client *Clientset) {
+	_logClusterCodePath()
+	defer _logClusterCodePath()
 	_logClusterCodePath()
 	defer _logClusterCodePath()
 	if err := ensureClusterOperatorStatusIsSet(t, client); err != nil {

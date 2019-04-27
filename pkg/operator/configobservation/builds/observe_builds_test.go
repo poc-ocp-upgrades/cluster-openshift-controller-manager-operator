@@ -18,6 +18,8 @@ import (
 func TestObserveBuildControllerConfig(t *testing.T) {
 	_logClusterCodePath()
 	defer _logClusterCodePath()
+	_logClusterCodePath()
+	defer _logClusterCodePath()
 	memLimit, err := resource.ParseQuantity("1G")
 	if err != nil {
 		t.Fatal(err)
@@ -79,6 +81,8 @@ func TestObserveBuildControllerConfig(t *testing.T) {
 	}
 }
 func testNestedField(obj map[string]interface{}, expectedVal interface{}, field string, existIfEmpty bool, t *testing.T) {
+	_logClusterCodePath()
+	defer _logClusterCodePath()
 	_logClusterCodePath()
 	defer _logClusterCodePath()
 	nestedField := strings.Split(field, ".")

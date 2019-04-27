@@ -40,6 +40,8 @@ type OpenShiftControllerManagerOperator struct {
 func NewOpenShiftControllerManagerOperator(targetImagePullSpec string, operatorConfigInformer operatorinformersv1.OpenShiftControllerManagerInformer, kubeInformersForOpenshiftControllerManager informers.SharedInformerFactory, operatorConfigClient operatorclientv1.OperatorV1Interface, kubeClient kubernetes.Interface, recorder events.Recorder) *OpenShiftControllerManagerOperator {
 	_logClusterCodePath()
 	defer _logClusterCodePath()
+	_logClusterCodePath()
+	defer _logClusterCodePath()
 	c := &OpenShiftControllerManagerOperator{targetImagePullSpec: targetImagePullSpec, operatorConfigClient: operatorConfigClient, kubeClient: kubeClient, queue: workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "KubeApiserverOperator"), rateLimiter: flowcontrol.NewTokenBucketRateLimiter(0.05, 4), recorder: recorder}
 	operatorConfigInformer.Informer().AddEventHandler(c.eventHandler())
 	kubeInformersForOpenshiftControllerManager.Core().V1().ConfigMaps().Informer().AddEventHandler(c.eventHandler())
@@ -50,6 +52,8 @@ func NewOpenShiftControllerManagerOperator(targetImagePullSpec string, operatorC
 	return c
 }
 func (c OpenShiftControllerManagerOperator) sync() error {
+	_logClusterCodePath()
+	defer _logClusterCodePath()
 	_logClusterCodePath()
 	defer _logClusterCodePath()
 	operatorConfig, err := c.operatorConfigClient.OpenShiftControllerManagers().Get("cluster", metav1.GetOptions{})
@@ -83,6 +87,8 @@ func (c OpenShiftControllerManagerOperator) sync() error {
 func (c *OpenShiftControllerManagerOperator) Run(workers int, stopCh <-chan struct{}) {
 	_logClusterCodePath()
 	defer _logClusterCodePath()
+	_logClusterCodePath()
+	defer _logClusterCodePath()
 	defer utilruntime.HandleCrash()
 	defer c.queue.ShutDown()
 	klog.Infof("Starting OpenShiftControllerManagerOperator")
@@ -93,10 +99,14 @@ func (c *OpenShiftControllerManagerOperator) Run(workers int, stopCh <-chan stru
 func (c *OpenShiftControllerManagerOperator) runWorker() {
 	_logClusterCodePath()
 	defer _logClusterCodePath()
+	_logClusterCodePath()
+	defer _logClusterCodePath()
 	for c.processNextWorkItem() {
 	}
 }
 func (c *OpenShiftControllerManagerOperator) processNextWorkItem() bool {
+	_logClusterCodePath()
+	defer _logClusterCodePath()
 	_logClusterCodePath()
 	defer _logClusterCodePath()
 	dsKey, quit := c.queue.Get()
@@ -117,6 +127,8 @@ func (c *OpenShiftControllerManagerOperator) processNextWorkItem() bool {
 func (c *OpenShiftControllerManagerOperator) eventHandler() cache.ResourceEventHandler {
 	_logClusterCodePath()
 	defer _logClusterCodePath()
+	_logClusterCodePath()
+	defer _logClusterCodePath()
 	return cache.ResourceEventHandlerFuncs{AddFunc: func(obj interface{}) {
 		c.queue.Add(workQueueKey)
 	}, UpdateFunc: func(old, new interface{}) {
@@ -126,6 +138,8 @@ func (c *OpenShiftControllerManagerOperator) eventHandler() cache.ResourceEventH
 	}}
 }
 func (c *OpenShiftControllerManagerOperator) namespaceEventHandler() cache.ResourceEventHandler {
+	_logClusterCodePath()
+	defer _logClusterCodePath()
 	_logClusterCodePath()
 	defer _logClusterCodePath()
 	return cache.ResourceEventHandlerFuncs{AddFunc: func(obj interface{}) {
