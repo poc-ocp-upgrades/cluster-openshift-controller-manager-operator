@@ -3,15 +3,15 @@ package framework
 import (
 	"testing"
 	"time"
-
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
-
 	configv1 "github.com/openshift/api/config/v1"
 )
 
 func hasExpectedClusterOperatorConditions(status *configv1.ClusterOperator) bool {
+	_logClusterCodePath()
+	defer _logClusterCodePath()
 	gotAvailable := false
 	gotProgressing := false
 	gotDegraded := false
@@ -28,8 +28,9 @@ func hasExpectedClusterOperatorConditions(status *configv1.ClusterOperator) bool
 	}
 	return gotAvailable && gotProgressing && gotDegraded
 }
-
 func ensureClusterOperatorStatusIsSet(logger Logger, client *Clientset) error {
+	_logClusterCodePath()
+	defer _logClusterCodePath()
 	var status *configv1.ClusterOperator
 	err := wait.Poll(1*time.Second, 2*time.Minute, func() (stop bool, err error) {
 		status, err = client.ClusterOperators().Get("openshift-controller-manager", metav1.GetOptions{})
@@ -52,8 +53,9 @@ func ensureClusterOperatorStatusIsSet(logger Logger, client *Clientset) error {
 	}
 	return err
 }
-
 func MustEnsureClusterOperatorStatusIsSet(t *testing.T, client *Clientset) {
+	_logClusterCodePath()
+	defer _logClusterCodePath()
 	if err := ensureClusterOperatorStatusIsSet(t, client); err != nil {
 		t.Fatal(err)
 	}
