@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"os"
 	"time"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
-
 	configv1 "github.com/openshift/api/config/v1"
 	configclient "github.com/openshift/client-go/config/clientset/versioned"
 	configinformers "github.com/openshift/client-go/config/informers/externalversions"
@@ -22,6 +20,8 @@ import (
 )
 
 func RunOperator(ctx *controllercmd.ControllerContext) error {
+	_logClusterCodePath()
+	defer _logClusterCodePath()
 	kubeClient, err := kubernetes.NewForConfig(ctx.ProtoKubeConfig)
 	if err != nil {
 		return err
@@ -34,76 +34,38 @@ func RunOperator(ctx *controllercmd.ControllerContext) error {
 	if err != nil {
 		return err
 	}
-
 	operatorConfigInformers := operatorinformers.NewSharedInformerFactory(operatorClient, 10*time.Minute)
 	kubeInformersForOpenshiftControllerManagerNamespace := informers.NewSharedInformerFactoryWithOptions(kubeClient, 10*time.Minute, informers.WithNamespace(util.TargetNamespace))
 	kubeInformersForOperatorNamespace := informers.NewSharedInformerFactoryWithOptions(kubeClient, 10*time.Minute, informers.WithNamespace(util.OperatorNamespace))
 	configInformers := configinformers.NewSharedInformerFactory(configClient, 10*time.Minute)
-
-	operator := NewOpenShiftControllerManagerOperator(
-		os.Getenv("IMAGE"),
-		operatorConfigInformers.Operator().V1().OpenShiftControllerManagers(),
-		kubeInformersForOpenshiftControllerManagerNamespace,
-		operatorClient.OperatorV1(),
-		kubeClient,
-		ctx.EventRecorder,
-	)
-
-	opClient := &genericClient{
-		informers: operatorConfigInformers,
-		client:    operatorClient.OperatorV1(),
-	}
-
-	configObserver := configobservationcontroller.NewConfigObserver(
-		opClient,
-		configInformers,
-		kubeInformersForOperatorNamespace,
-		ctx.EventRecorder,
-	)
-
-	versionGetter := &versionGetter{
-		openshiftControllerManagers: operatorClient.OperatorV1().OpenShiftControllerManagers(),
-		version:                     os.Getenv("RELEASE_VERSION"),
-	}
-	clusterOperatorStatus := status.NewClusterOperatorStatusController(
-		util.ClusterOperatorName,
-		[]configv1.ObjectReference{
-			{Group: "operator.openshift.io", Resource: "openshiftcontrollermanagers", Name: "cluster"},
-			{Resource: "namespaces", Name: util.UserSpecifiedGlobalConfigNamespace},
-			{Resource: "namespaces", Name: util.MachineSpecifiedGlobalConfigNamespace},
-			{Resource: "namespaces", Name: util.OperatorNamespace},
-			{Resource: "namespaces", Name: util.TargetNamespace},
-		},
-		configClient.ConfigV1(),
-		configInformers.Config().V1().ClusterOperators(),
-		opClient,
-		versionGetter,
-		ctx.EventRecorder,
-	)
-
+	operator := NewOpenShiftControllerManagerOperator(os.Getenv("IMAGE"), operatorConfigInformers.Operator().V1().OpenShiftControllerManagers(), kubeInformersForOpenshiftControllerManagerNamespace, operatorClient.OperatorV1(), kubeClient, ctx.EventRecorder)
+	opClient := &genericClient{informers: operatorConfigInformers, client: operatorClient.OperatorV1()}
+	configObserver := configobservationcontroller.NewConfigObserver(opClient, configInformers, kubeInformersForOperatorNamespace, ctx.EventRecorder)
+	versionGetter := &versionGetter{openshiftControllerManagers: operatorClient.OperatorV1().OpenShiftControllerManagers(), version: os.Getenv("RELEASE_VERSION")}
+	clusterOperatorStatus := status.NewClusterOperatorStatusController(util.ClusterOperatorName, []configv1.ObjectReference{{Group: "operator.openshift.io", Resource: "openshiftcontrollermanagers", Name: "cluster"}, {Resource: "namespaces", Name: util.UserSpecifiedGlobalConfigNamespace}, {Resource: "namespaces", Name: util.MachineSpecifiedGlobalConfigNamespace}, {Resource: "namespaces", Name: util.OperatorNamespace}, {Resource: "namespaces", Name: util.TargetNamespace}}, configClient.ConfigV1(), configInformers.Config().V1().ClusterOperators(), opClient, versionGetter, ctx.EventRecorder)
 	operatorConfigInformers.Start(ctx.Done())
 	kubeInformersForOpenshiftControllerManagerNamespace.Start(ctx.Done())
 	kubeInformersForOperatorNamespace.Start(ctx.Done())
 	configInformers.Start(ctx.Done())
-
 	go operator.Run(1, ctx.Done())
 	go configObserver.Run(1, ctx.Done())
 	go clusterOperatorStatus.Run(1, ctx.Done())
-
 	<-ctx.Done()
 	return fmt.Errorf("stopped")
 }
 
 type versionGetter struct {
-	openshiftControllerManagers operatorclientv1.OpenShiftControllerManagerInterface
-	version                     string
+	openshiftControllerManagers	operatorclientv1.OpenShiftControllerManagerInterface
+	version				string
 }
 
 func (v *versionGetter) SetVersion(operandName, version string) {
-	// this versionGetter impl always gets the current version dynamically from operator config object status.
+	_logClusterCodePath()
+	defer _logClusterCodePath()
 }
-
 func (v *versionGetter) GetVersions() map[string]string {
+	_logClusterCodePath()
+	defer _logClusterCodePath()
 	co, err := v.openshiftControllerManagers.Get("cluster", metav1.GetOptions{})
 	if co == nil || err != nil {
 		return map[string]string{}
@@ -113,8 +75,8 @@ func (v *versionGetter) GetVersions() map[string]string {
 	}
 	return map[string]string{}
 }
-
 func (v *versionGetter) VersionChangedChannel() <-chan struct{} {
-	// this versionGetter never notifies of a version change, getVersion always returns the new version.
+	_logClusterCodePath()
+	defer _logClusterCodePath()
 	return make(chan struct{})
 }

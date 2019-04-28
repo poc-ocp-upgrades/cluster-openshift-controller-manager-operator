@@ -3,188 +3,37 @@ package builds
 import (
 	"strings"
 	"testing"
-
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/client-go/tools/cache"
-
 	configv1 "github.com/openshift/api/config/v1"
 	configlistersv1 "github.com/openshift/client-go/config/listers/config/v1"
 	"github.com/openshift/library-go/pkg/operator/events"
-
 	"github.com/openshift/cluster-openshift-controller-manager-operator/pkg/operator/configobservation"
 )
 
 func TestObserveBuildControllerConfig(t *testing.T) {
+	_logClusterCodePath()
+	defer _logClusterCodePath()
 	memLimit, err := resource.ParseQuantity("1G")
 	if err != nil {
 		t.Fatal(err)
 	}
 	tests := []struct {
-		name        string
-		buildConfig *configv1.Build
-		expectError bool
-	}{
-		{
-			name: "no build config",
-		},
-		{
-			name: "valid build config",
-			buildConfig: &configv1.Build{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "cluster",
-				},
-				Spec: configv1.BuildSpec{
-					BuildDefaults: configv1.BuildDefaults{
-						DefaultProxy: &configv1.ProxySpec{
-							HTTPProxy:  "http://user:pass@someproxy.net",
-							HTTPSProxy: "https://user:pass@someproxy.net",
-							NoProxy:    "image-resgistry.cluster.svc.local",
-						},
-						GitProxy: &configv1.ProxySpec{
-							HTTPProxy:  "http://my-proxy",
-							HTTPSProxy: "https://my-proxy",
-							NoProxy:    "https://no-proxy",
-						},
-						Env: []corev1.EnvVar{
-							{
-								Name:  "FOO",
-								Value: "BAR",
-							},
-						},
-						ImageLabels: []configv1.ImageLabel{
-							{
-								Name:  "build.openshift.io",
-								Value: "test",
-							},
-						},
-						Resources: corev1.ResourceRequirements{
-							Requests: corev1.ResourceList{
-								corev1.ResourceMemory: memLimit,
-							},
-						},
-					},
-					BuildOverrides: configv1.BuildOverrides{
-						ImageLabels: []configv1.ImageLabel{
-							{
-								Name:  "build.openshift.io",
-								Value: "teset2",
-							},
-						},
-						NodeSelector: map[string]string{
-							"foo": "bar",
-						},
-						Tolerations: []corev1.Toleration{
-							{
-								Key:      "somekey",
-								Operator: corev1.TolerationOpExists,
-								Effect:   corev1.TaintEffectNoSchedule,
-							},
-						},
-					},
-				},
-			},
-		},
-		{
-			name: "empty proxy values",
-			buildConfig: &configv1.Build{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "cluster",
-				},
-				Spec: configv1.BuildSpec{
-					BuildDefaults: configv1.BuildDefaults{
-						DefaultProxy: &configv1.ProxySpec{
-							HTTPProxy:  "",
-							HTTPSProxy: "https://user:pass@someproxy.net",
-							NoProxy:    "",
-						},
-						GitProxy: &configv1.ProxySpec{
-							HTTPProxy:  "http://my-proxy",
-							HTTPSProxy: "",
-							NoProxy:    "https://no-proxy",
-						},
-					},
-				},
-			},
-		},
-		{
-			name: "default proxy",
-			buildConfig: &configv1.Build{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "cluster",
-				},
-				Spec: configv1.BuildSpec{
-					BuildDefaults: configv1.BuildDefaults{
-						DefaultProxy: &configv1.ProxySpec{
-							HTTPProxy:  "http://user:pass@someproxy.net",
-							HTTPSProxy: "https://user:pass@someproxy.net",
-							NoProxy:    "image-resgistry.cluster.svc.local",
-						},
-					},
-				},
-			},
-		},
-		{
-			name: "default proxy with env vars",
-			buildConfig: &configv1.Build{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "cluster",
-				},
-				Spec: configv1.BuildSpec{
-					BuildDefaults: configv1.BuildDefaults{
-						DefaultProxy: &configv1.ProxySpec{
-							HTTPProxy:  "http://user:pass@someproxy.net",
-							HTTPSProxy: "https://user:pass@someproxy.net",
-							NoProxy:    "image-resgistry.cluster.svc.local",
-						},
-						Env: []corev1.EnvVar{
-							{
-								Name:  "HTTP_PROXY",
-								Value: "http://other:user@otherproxy.com",
-							},
-							{
-								Name:  "HTTPS_PROXY",
-								Value: "https://other:user@otherproxy.com",
-							},
-							{
-								Name:  "NO_PROXY",
-								Value: "somedomain",
-							},
-						},
-					},
-				},
-			},
-		},
-		{
-			name: "git proxy",
-			buildConfig: &configv1.Build{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "cluster",
-				},
-				Spec: configv1.BuildSpec{
-					BuildDefaults: configv1.BuildDefaults{
-						GitProxy: &configv1.ProxySpec{
-							HTTPProxy:  "http://user:pass@someproxy.net",
-							HTTPSProxy: "https://user:pass@someproxy.net",
-							NoProxy:    "image-resgistry.cluster.svc.local",
-						},
-					},
-				},
-			},
-		},
-	}
+		name		string
+		buildConfig	*configv1.Build
+		expectError	bool
+	}{{name: "no build config"}, {name: "valid build config", buildConfig: &configv1.Build{ObjectMeta: metav1.ObjectMeta{Name: "cluster"}, Spec: configv1.BuildSpec{BuildDefaults: configv1.BuildDefaults{DefaultProxy: &configv1.ProxySpec{HTTPProxy: "http://user:pass@someproxy.net", HTTPSProxy: "https://user:pass@someproxy.net", NoProxy: "image-resgistry.cluster.svc.local"}, GitProxy: &configv1.ProxySpec{HTTPProxy: "http://my-proxy", HTTPSProxy: "https://my-proxy", NoProxy: "https://no-proxy"}, Env: []corev1.EnvVar{{Name: "FOO", Value: "BAR"}}, ImageLabels: []configv1.ImageLabel{{Name: "build.openshift.io", Value: "test"}}, Resources: corev1.ResourceRequirements{Requests: corev1.ResourceList{corev1.ResourceMemory: memLimit}}}, BuildOverrides: configv1.BuildOverrides{ImageLabels: []configv1.ImageLabel{{Name: "build.openshift.io", Value: "teset2"}}, NodeSelector: map[string]string{"foo": "bar"}, Tolerations: []corev1.Toleration{{Key: "somekey", Operator: corev1.TolerationOpExists, Effect: corev1.TaintEffectNoSchedule}}}}}}, {name: "empty proxy values", buildConfig: &configv1.Build{ObjectMeta: metav1.ObjectMeta{Name: "cluster"}, Spec: configv1.BuildSpec{BuildDefaults: configv1.BuildDefaults{DefaultProxy: &configv1.ProxySpec{HTTPProxy: "", HTTPSProxy: "https://user:pass@someproxy.net", NoProxy: ""}, GitProxy: &configv1.ProxySpec{HTTPProxy: "http://my-proxy", HTTPSProxy: "", NoProxy: "https://no-proxy"}}}}}, {name: "default proxy", buildConfig: &configv1.Build{ObjectMeta: metav1.ObjectMeta{Name: "cluster"}, Spec: configv1.BuildSpec{BuildDefaults: configv1.BuildDefaults{DefaultProxy: &configv1.ProxySpec{HTTPProxy: "http://user:pass@someproxy.net", HTTPSProxy: "https://user:pass@someproxy.net", NoProxy: "image-resgistry.cluster.svc.local"}}}}}, {name: "default proxy with env vars", buildConfig: &configv1.Build{ObjectMeta: metav1.ObjectMeta{Name: "cluster"}, Spec: configv1.BuildSpec{BuildDefaults: configv1.BuildDefaults{DefaultProxy: &configv1.ProxySpec{HTTPProxy: "http://user:pass@someproxy.net", HTTPSProxy: "https://user:pass@someproxy.net", NoProxy: "image-resgistry.cluster.svc.local"}, Env: []corev1.EnvVar{{Name: "HTTP_PROXY", Value: "http://other:user@otherproxy.com"}, {Name: "HTTPS_PROXY", Value: "https://other:user@otherproxy.com"}, {Name: "NO_PROXY", Value: "somedomain"}}}}}}, {name: "git proxy", buildConfig: &configv1.Build{ObjectMeta: metav1.ObjectMeta{Name: "cluster"}, Spec: configv1.BuildSpec{BuildDefaults: configv1.BuildDefaults{GitProxy: &configv1.ProxySpec{HTTPProxy: "http://user:pass@someproxy.net", HTTPSProxy: "https://user:pass@someproxy.net", NoProxy: "image-resgistry.cluster.svc.local"}}}}}}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			indexer := cache.NewIndexer(cache.MetaNamespaceKeyFunc, cache.Indexers{})
 			if test.buildConfig != nil {
 				indexer.Add(test.buildConfig)
 			}
-			listers := configobservation.Listers{
-				BuildConfigLister: configlistersv1.NewBuildLister(indexer),
-			}
+			listers := configobservation.Listers{BuildConfigLister: configlistersv1.NewBuildLister(indexer)}
 			config := map[string]interface{}{}
 			observed, err := ObserveBuildControllerConfig(listers, events.NewInMemoryRecorder(""), config)
 			if err != nil {
@@ -207,14 +56,12 @@ func TestObserveBuildControllerConfig(t *testing.T) {
 				}
 				return
 			}
-
 			expectedEnv := test.buildConfig.Spec.BuildDefaults.Env
 			testNestedField(observed, expectedEnv, "build.buildDefaults.env", false, t)
 			testNestedField(observed, test.buildConfig.Spec.BuildDefaults.ImageLabels, "build.buildDefaults.imageLabels", false, t)
 			testNestedField(observed, test.buildConfig.Spec.BuildOverrides.ImageLabels, "build.buildOverrides.imageLabels", false, t)
 			testNestedField(observed, test.buildConfig.Spec.BuildOverrides.NodeSelector, "build.buildOverrides.nodeSelector", false, t)
 			testNestedField(observed, test.buildConfig.Spec.BuildOverrides.Tolerations, "build.buildOverrides.tolerations", false, t)
-
 			expectedGitProxy := test.buildConfig.Spec.BuildDefaults.DefaultProxy
 			if test.buildConfig.Spec.BuildDefaults.GitProxy != nil {
 				expectedGitProxy = test.buildConfig.Spec.BuildDefaults.GitProxy
@@ -231,8 +78,9 @@ func TestObserveBuildControllerConfig(t *testing.T) {
 		})
 	}
 }
-
 func testNestedField(obj map[string]interface{}, expectedVal interface{}, field string, existIfEmpty bool, t *testing.T) {
+	_logClusterCodePath()
+	defer _logClusterCodePath()
 	nestedField := strings.Split(field, ".")
 	switch expected := expectedVal.(type) {
 	case string:
