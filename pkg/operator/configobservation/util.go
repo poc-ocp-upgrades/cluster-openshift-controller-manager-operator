@@ -4,14 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"strings"
-
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
-// ObserveField sets the nested fieldName's value in the provided observedConfig.
-// If the provided value is nil, no value is set.
-// If skipIfEmpty is true, the value
 func ObserveField(observedConfig map[string]interface{}, val interface{}, fieldName string, skipIfEmpty bool) error {
+	_logClusterCodePath()
+	defer _logClusterCodePath()
 	nestedFields := strings.Split(fieldName, ".")
 	if val == nil {
 		return nil
@@ -52,10 +50,9 @@ func ObserveField(observedConfig map[string]interface{}, val interface{}, fieldN
 	}
 	return err
 }
-
-// ConvertJSON returns the provided object's JSON-encoded representation. The object
-// must support JSON serialization and deserialization.
 func ConvertJSON(o interface{}) (interface{}, error) {
+	_logClusterCodePath()
+	defer _logClusterCodePath()
 	if o == nil {
 		return nil, nil
 	}
